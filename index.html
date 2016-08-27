@@ -26,43 +26,107 @@
     <div id="form_container" class="container"></div>
 
     <script type="text/babel">
-        var CommentBox = React.createClass({
-          render: function() {
-            return (
-              <div className="commentBox">
-                <h1>Comments</h1>
-              </div>
-            );
-          }
-        });
-
         const TodoList = React.createClass({
+            currentInput: null,
+
+            addTodo: function(text) {
+                this.setState(previousState => {
+                    todos: previousState.todos.push(text);
+                });
+            },
+
+            getInitialState: function () {
+                return {
+                    todos: []
+                };
+            },
+
+            renderInputs: function () {
+                let inputs = [];
+                for(let i = 0; i < this.state.todos.length + 1; i++) {
+                    inputs.push(
+                        <Input
+                            key = {'todo #' + i}
+                            focus = {i === this.state.todos.length}
+                            ref = {(elmt) => {
+                                if(i === this.state.todos.length) {
+                                    this.currentInput = elmt;
+                                }
+                                }
+                            }/>
+                    );
+                }
+                return inputs;
+            },
+
             render: function () {
                 return (
                     <form className="form-todolist">
-                        <Heading />
-                        <Input />
-                        <AddButton />
+                        <Heading numTodos = {this.state.todos.length} />
+                        {this.renderInputs()}
+                        <AddButton onClick={() => this.addTodo(this.currentInput.state.value)}/>
                     </form>
                 );
             }
         });
 
         const Heading = React.createClass({
+            propTypes: {
+                numTodos: React.PropTypes.number.isRequired
+            },
+
             render: function () {
-                return (<h2 className="form-todolist-heading">Please add a todo</h2>);
+                return (<h2 className="form-todolist-heading">
+                            {this.props.numTodos}
+                            {this.props.numTodos === 1 ? ' todo' : ' todos'}
+                        </h2>);
             }
         });
 
         const Input = React.createClass({
+            propTypes: {
+                focus: React.PropTypes.bool
+            },
+
+            getInitialState: function () {
+                return {value: ''};
+            },
+
+            updateValue: function (event) {
+                this.setState({
+                    value: event.target.value
+                });
+            },
+
             render: function () {
-                return (<input type="text" id="inputText" className="form-control" placeholder="Todo" />);
+                return (<input
+                    type="text"
+                    id="inputText"
+                    className="form-control"
+                    placeholder="Todo"
+                    value = {this.state.value}
+                    onChange = {this.updateValue} />);
+            },
+
+            componentDidMount: function () {
+                if(this.props.focus) {
+                    ReactDOM.findDOMNode(this).focus();
+                }
             }
         });
 
         const AddButton = React.createClass({
+            propTypes: {
+                onClick: React.PropTypes.func.isRequired
+            },
+
             render: function () {
-                return (<button className="btn btn-lg btn-primary btn-block" type="submit">Add</button>);
+                return (<button
+                    className="btn btn-lg btn-primary btn-block"
+                    type="button"
+                    onClick={this.props.onClick}>
+                            Add
+                        </button>);
             }
         });
 
